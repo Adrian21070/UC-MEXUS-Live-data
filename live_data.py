@@ -1,4 +1,6 @@
 import requests
+import PySimpleGui as sg
+import time
 from datetime import datetime, timedelta
 from dateutil import tz
 
@@ -20,6 +22,67 @@ channel_ids =[1367948, 1367997, 1336916, 1367985, 1369647,
               1451621, 1452812, 1452804, 1450358, 1450485]
 
 from_zone = tz.tzutc()
+
+def Gui():
+    # Se crea la interfaz principal del programa.
+    layout = [[sg.Text('Monitoreo de los sensores PurpleAir en vivo.')],
+            [sg.Text('Este programa permite realizar un monitoreo en vivo de los sensores en el campo, comprobando que estos esten transmitiendo datos continuamente al servidor')],
+            [sg.Text('Indica cada cuanto tiempo se comprobara que los sensores envian datos: '), sg.Input(key='Period')],
+            [sg.Text('Favor de escribir el correo que recibira las advertencias: '), sg.Input(key='Correo')],
+            [sg.Button('Continue'), sg.Button('Exit')]]
+
+    window = sg.Window('Monitoreo de los sensores', layout, size=(720,480))
+    event, value = window.read()
+
+    period = value['Period']
+    email = value['Correo']
+
+    if event == 'Exit':
+        pass
+    
+    chain = list(range(1,len(keys)+1))
+    lay = []
+    layout = []
+
+    r = 0
+    c = 0
+    for ii in chain:
+        if ii%9 == 0:
+            r += 1
+            c = 0
+            layout.append(lay)
+            lay = []
+        lay.append(sg.Input(ii,key=f'{r},{c}', size=(5,1)))
+        c += 1
+    if lay:
+        layout.append(lay)
+        lay = []
+
+    lay = [[sg.Text('Favor de indicar los sensores a monitorizar', justification='center', expand_x=True, expand_y=True)],
+            [sg.Text('Escribe el número de identificación de los sensores en los recuadros (Ejemplo: 1, 6, 23)')],
+            [sg.Frame('Disposición de los sensores', layout, element_justification='center', expand_x=True)],
+            [sg.Button('Continue',key='Next'),sg.Button('Return',key='sensor_info'),sg.Button('Exit')]]
+
+    window.close()
+    window = sg.Window('Monitoreo de los sensores', lay, size=(720,480))
+    event, value = window.read()
+
+    if event == 'Exit':
+        pass
+
+    lay = [sg.Text('El programa se inicializara...')]
+    window.close()
+    window = sg.Window('Monitoreo de los sensores', lay)
+    
+    time.sleep(5)
+    window.close()
+
+    lay = [[sg.Text('El programa actualmente esta funcionando.')],
+            [sg.Text('Si algun sensor deja de enviar datos, se notificara con un e-mail.')],
+            [sg.Text('Para finalizar el programa, solo cierra esta ventana.')]]
+    window = sg.Window('Monitoreo de los sensores', lay)
+
+    return period, email, value
 
 def Data_extraction():
     """
@@ -47,7 +110,6 @@ def Data_extraction():
         dates.append(date)
     
     return dates
-
 
 def Read_sensor(channel_id, read_key):
     url = 'https://api.thingspeak.com/channels/{}/feeds.json?api_key='.format(channel_id)
