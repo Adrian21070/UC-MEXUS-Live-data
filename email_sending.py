@@ -4,7 +4,7 @@ from datetime import datetime
 import smtplib
 import email.message
 
-def Email(user,sensores):
+def Send_email(user,sensores):
     
     # Creación del contenido del correo
     init = """
@@ -33,10 +33,10 @@ def Email(user,sensores):
           <td>
             <table id="header" cellpadding="10" cellspacing="0" align="center" bgcolor="8fb3e9">
               <tr>
-                <td width="570" align="center"  bgcolor="#d80a3e"><h1>Desconexión de sensores</h1></td>
+                <td width="570" align="center"  bgcolor="#00dda9"><h1>Desconexión de sensores</h1></td>
               </tr>
               <tr>
-                <td width="570" align="right" bgcolor="#d80a3e"> 
+                <td width="570" align="right" bgcolor="#00dda9"> 
     """
     time = datetime.today().strftime('%A, %B %d, %Y %H:%M')
 
@@ -90,7 +90,7 @@ def Email(user,sensores):
     #create server
     server = smtplib.SMTP('smtp.gmail.com: 587')
     
-    server.starttls()
+    server.starttls() # Fallo
     
     # Login Credentials for sending the mail
     server.login(msg['From'], password)

@@ -1,5 +1,5 @@
 import requests
-import PySimpleGui as sg
+#import pysimplegui as sg
 import time
 from datetime import datetime, timedelta
 from dateutil import tz
@@ -84,7 +84,7 @@ def Gui():
 
     return period, email, value
 
-def Data_extraction():
+def Data_extraction(value):
     """
         @name: Data_extraction
         @brief: Función que extrae datos de los sensores purple air
@@ -94,9 +94,9 @@ def Data_extraction():
     dates = []
 
     # Extrae por cada sensor, los datos de la ultima medición
-    for ii in range(len(keys)):
-        key = keys[ii]
-        channel = channel_ids[ii]
+    for ii in value:
+        key = keys[ii-1]
+        channel = channel_ids[ii-1]
         data = Read_sensor(channel, key)
 
         date = data[0]['created_at'].strip('Z').replace('T', ' ')
@@ -113,7 +113,7 @@ def Data_extraction():
 
 def Read_sensor(channel_id, read_key):
     url = 'https://api.thingspeak.com/channels/{}/feeds.json?api_key='.format(channel_id)
-    url = url + read_key
+    url = url + read_key + "&results=1"
 
     data = requests.get(url).json()
 
