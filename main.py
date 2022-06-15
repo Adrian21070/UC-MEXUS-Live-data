@@ -2,20 +2,10 @@ import time
 from datetime import datetime
 from live_data import *
 import email_sending as Mail
+import PySimpleGUI
+import multiprocessing
 
-if __name__=='__main__':
-    # Se realizaran muestros cada 5 minutos, se esperaria tener algun dato en este periodo
-    # si no se presenta algun dato nuevo, es decir una nueva fecha, se marcara como un retraso
-    # de 5 minutos para ese sensor, esto se ira acumulando y si pasa los 15 minutos, se enviara
-    # un email como forma de alarma para avisar este error.
-    # Si detecta un nuevo dato antes de pasar los 15 minutos, se reinicia este retraso a 0. 
-
-    # Creación de interfaz
-    #period, user, value = Gui()
-    period = 5
-    user = "adrian_isai2002@hotmail.com"
-    value = [1,2,5]
-
+def verificacion(period, user, value):
     # Obtengo la hora antes de entrar a la extracción de datos
     time_0 = datetime.now()
     
@@ -34,7 +24,11 @@ if __name__=='__main__':
         delta_time = (time_1 - time_0).seconds
 
         # Pauso por 5 minutos el programa
-        time.sleep(120-delta_time)
+        if period*60 - delta_time < 0:
+            pass
+
+        else:
+            time.sleep(period*60 - delta_time)
 
         # Obtengo la hora antes de entrar a la extracción de datos
         time_0 = datetime.now()
@@ -49,15 +43,15 @@ if __name__=='__main__':
             # Verificamos que el sensor si este en el mismo dia de mediciones
             # puede que no haya inicializado y tenga un dato desde hace dias.
             if delta.days != 0:
-                retrasos[ii] = 15
+                retrasos[ii] = period
 
             else:
                 if delta.seconds >= 60:
                     retrasos[ii] = 0
                 else:
-                    retrasos[ii] = retrasos[ii] + 5
+                    retrasos[ii] = retrasos[ii] + period
 
-                if retrasos[ii] >= 5:
+                if retrasos[ii] >= period:
                     # Almaceno el numero del sensor que tuvo perdida de información mayor a 15 minutos
                     email_sensors.append(value[ii])
 
@@ -74,3 +68,29 @@ if __name__=='__main__':
 
         # Obtengo la hora depues de salir del proceso
         time_1 = datetime.now()
+
+def interfaz():
+    # Creación de interfaz
+    period, user, value, window = Gui()
+    #period = 5
+    #user = "adrian_isai2002@hotmail.com"
+    #value = [1,2,5]
+
+    p2 = multiprocessing.Process(target = verificacion, args=(period,user,value))
+    p2.start()
+
+    while True:
+        event = window.read()
+        if event == sg.WIN_CLOSED:
+            if p2.is_alive():
+                p2.terminate()
+            break
+
+if __name__=='__main__':
+    # Se realizaran muestros cada 5 minutos, se esperaria tener algun dato en este periodo
+    # si no se presenta algun dato nuevo, es decir una nueva fecha, se marcara como un retraso
+    # de 5 minutos para ese sensor, esto se ira acumulando y si pasa los 15 minutos, se enviara
+    # un email como forma de alarma para avisar este error.
+    # Si detecta un nuevo dato antes de pasar los 15 minutos, se reinicia este retraso a 0. 
+    p1 = multiprocessing.Process(target = interfaz)
+    p1.start()

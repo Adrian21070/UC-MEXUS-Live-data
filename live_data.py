@@ -1,6 +1,7 @@
 import requests
-#import pysimplegui as sg
+import PySimpleGUI as sg
 import time
+import sys
 from datetime import datetime, timedelta
 from dateutil import tz
 
@@ -26,19 +27,20 @@ from_zone = tz.tzutc()
 def Gui():
     # Se crea la interfaz principal del programa.
     layout = [[sg.Text('Monitoreo de los sensores PurpleAir en vivo.')],
-            [sg.Text('Este programa permite realizar un monitoreo en vivo de los sensores en el campo, comprobando que estos esten transmitiendo datos continuamente al servidor')],
-            [sg.Text('Indica cada cuanto tiempo se comprobara que los sensores envian datos: '), sg.Input(key='Period')],
-            [sg.Text('Favor de escribir el correo que recibira las advertencias: '), sg.Input(key='Correo')],
+            [sg.Text('Este programa permite realizar un monitoreo en vivo de los sensores en el campo,\ncomprobando que estos esten transmitiendo datos continuamente al servidor', expand_x=True)],
+            [sg.Text('Indica cada cuanto tiempo se comprobara que los sensores envian datos: ',size = (55,1)), sg.Input(key='Period',expand_x=True)],
+            [sg.Text('Favor de escribir el correo que recibira las advertencias: ',size = (55,1)), sg.Input(key='Correo')],
             [sg.Button('Continue'), sg.Button('Exit')]]
 
     window = sg.Window('Monitoreo de los sensores', layout, size=(720,480))
     event, value = window.read()
 
-    period = value['Period']
-    email = value['Correo']
-
     if event == 'Exit':
-        pass
+        window.close()
+        sys.exit()
+
+    period = float(value['Period'])
+    email = value['Correo']
     
     chain = list(range(1,len(keys)+1))
     lay = []
@@ -58,7 +60,7 @@ def Gui():
         layout.append(lay)
         lay = []
 
-    lay = [[sg.Text('Favor de indicar los sensores a monitorizar', justification='center', expand_x=True, expand_y=True)],
+    lay = [[sg.Text('Favor de indicar los sensores a monitorizar', justification='center', expand_x=True)],
             [sg.Text('Escribe el número de identificación de los sensores en los recuadros (Ejemplo: 1, 6, 23)')],
             [sg.Frame('Disposición de los sensores', layout, element_justification='center', expand_x=True)],
             [sg.Button('Continue',key='Next'),sg.Button('Return',key='sensor_info'),sg.Button('Exit')]]
@@ -70,7 +72,8 @@ def Gui():
     if event == 'Exit':
         pass
 
-    lay = [sg.Text('El programa se inicializara...')]
+    lay = []
+    lay = [[sg.Text('El programa se inicializara...')]]
     window.close()
     window = sg.Window('Monitoreo de los sensores', lay)
     
@@ -82,7 +85,13 @@ def Gui():
             [sg.Text('Para finalizar el programa, solo cierra esta ventana.')]]
     window = sg.Window('Monitoreo de los sensores', lay)
 
-    return period, email, value
+    value =  list(set(list(value.values())))
+    value.remove('')
+    sensors = []
+    for ii in value:
+        sensors.append(int(ii))
+
+    return period, email, sensors, window
 
 def Data_extraction(value):
     """
@@ -95,6 +104,7 @@ def Data_extraction(value):
 
     # Extrae por cada sensor, los datos de la ultima medición
     for ii in value:
+        #ii = int(ii)
         key = keys[ii-1]
         channel = channel_ids[ii-1]
         data = Read_sensor(channel, key)
