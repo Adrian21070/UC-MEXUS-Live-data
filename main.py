@@ -1,9 +1,9 @@
 import time
+import email_sending as Mail
+import PySimpleGUI as sg
+import multiprocessing
 from datetime import datetime
 from live_data import *
-import email_sending as Mail
-import PySimpleGUI
-import multiprocessing
 
 def verificacion(period, user, value):
     # Obtengo la hora antes de entrar a la extracción de datos
@@ -65,6 +65,7 @@ def verificacion(period, user, value):
         # Se envian correos si email_sensors no esta vacio.
         if email_sensors:
             Mail.Send_email(user, email_sensors)
+            email_sensors = []
 
         # Obtengo la hora depues de salir del proceso
         time_1 = datetime.now()
@@ -72,18 +73,16 @@ def verificacion(period, user, value):
 def interfaz():
     # Creación de interfaz
     period, user, value, window = Gui()
-    #period = 5
-    #user = "adrian_isai2002@hotmail.com"
-    #value = [1,2,5]
 
     p2 = multiprocessing.Process(target = verificacion, args=(period,user,value))
     p2.start()
 
     while True:
-        event = window.read()
-        if event == sg.WIN_CLOSED:
+        event, value = window.read()
+        if event in (None, sg.WIN_CLOSED):
             if p2.is_alive():
                 p2.terminate()
+            #sys.exit()
             break
 
 if __name__=='__main__':

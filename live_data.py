@@ -73,12 +73,9 @@ def Gui():
         pass
 
     lay = []
-    lay = [[sg.Text('El programa se inicializara...')]]
+
     window.close()
-    window = sg.Window('Monitoreo de los sensores', lay)
-    
-    time.sleep(5)
-    window.close()
+    time.sleep(2)
 
     lay = [[sg.Text('El programa actualmente esta funcionando.')],
             [sg.Text('Si algun sensor deja de enviar datos, se notificara con un e-mail.')],
