@@ -23,7 +23,7 @@ def verificacion(period, user, value):
         # Calculo lo que tardo en extraer los datos.
         delta_time = (time_1 - time_0).seconds
 
-        # Pauso por 5 minutos el programa
+        # Pauso por ciertos minutos el programa
         if period*60 - delta_time < 0:
             pass
 
@@ -46,25 +46,26 @@ def verificacion(period, user, value):
                 retrasos[ii] = period
 
             else:
-                if delta.seconds >= 60:
+                # Si se reportaron datos entre el tiempo de espera, el retraso es 0.
+                if delta.seconds >= period/2:
                     retrasos[ii] = 0
-                else:
-                    retrasos[ii] = retrasos[ii] + period
 
-                if retrasos[ii] >= period:
-                    # Almaceno el numero del sensor que tuvo perdida de información mayor a 15 minutos
+                else:
+                    # Caso contrario se aumenta el retraso, en este caso directamente se cataloga como
+                    # sensor para enviar correo.
+
+                    #retrasos[ii] = retrasos[ii] + period
                     email_sensors.append(value[ii])
 
-                # De sobra?
-                elif retrasos[ii] == 0:
-                    if ii+1 in email_sensors:
-                        email_sensors.remove(value[ii])
-                        
-                # Reiniciar email_sensors
+                #if retrasos[ii] >= period:
+                #    # Almaceno el numero del sensor que tuvo perdida de información mayor a x minutos
+                #    retrasos[ii] = 0
+                #    email_sensors.append(value[ii])
         
         # Se envian correos si email_sensors no esta vacio.
         if email_sensors:
             Mail.Send_email(user, email_sensors)
+            sg.Popup('Se desconectaron algunos sensores!!!', keep_on_top=True)
             email_sensors = []
 
         # Obtengo la hora depues de salir del proceso
@@ -74,22 +75,42 @@ def interfaz():
     # Creación de interfaz
     period, user, value, window = Gui()
 
+    # Se corre en paralelo la comprobación del funcionamiento de los sensores.
     p2 = multiprocessing.Process(target = verificacion, args=(period,user,value))
     p2.start()
 
+    # Bucle que confirma si el usuario desea salir de la ejecución del programa.
     while True:
         event, value = window.read()
         if event in (None, sg.WIN_CLOSED):
-            if p2.is_alive():
-                p2.terminate()
-            #sys.exit()
-            break
+
+            # El usuario debe confirmar que si desea salir
+            lay = [[sg.Text('¿Estas segur@ de salir del programa?', font=('Times New Roman',24))],
+                    [sg.Button('Exit'), sg.Button('Keep running')]],
+            window = sg.Window('Monitoreo de los sensores', lay, font=('Times New Roman',18), grab_anywhere=True)
+            event, value = window.read()
+            window.close()
+
+            if event in ('Exit', sg.WIN_CLOSED):
+                # Termina todos los procesos y cierra el programa.
+                if p2.is_alive():
+                    p2.terminate()
+                #sys.exit()
+                break
+
+            else:
+                # Se crea la ventana de "Programa en funcionamiento"
+                lay = [[sg.Text('El programa actualmente esta funcionando.')],
+                    [sg.Text('Si algun sensor deja de enviar datos, se notificara con un e-mail.')],
+                    [sg.Text('Para finalizar el programa, solo cierra esta ventana.')]]
+                window = sg.Window('Monitoreo de los sensores', lay, font = font, grab_anywhere=True)
+                continue
 
 if __name__=='__main__':
-    # Se realizaran muestros cada 5 minutos, se esperaria tener algun dato en este periodo
+    # Se realizaran muestros cada x minutos, se esperaria tener algun dato en este periodo
     # si no se presenta algun dato nuevo, es decir una nueva fecha, se marcara como un retraso
-    # de 5 minutos para ese sensor, esto se ira acumulando y si pasa los 15 minutos, se enviara
-    # un email como forma de alarma para avisar este error.
-    # Si detecta un nuevo dato antes de pasar los 15 minutos, se reinicia este retraso a 0. 
+    # de x minutos para ese sensor, esto se ira acumulando y si pasa un tiempo dado en minutos,
+    # se enviara un e-mail como forma de alarma para avisar este error.
+    # Si detecta un nuevo dato antes de pasar el tiempo dado en minutos, se reinicia este retraso a 0. 
     p1 = multiprocessing.Process(target = interfaz)
     p1.start()

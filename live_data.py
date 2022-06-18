@@ -2,6 +2,7 @@ import requests
 import PySimpleGUI as sg
 import time
 import sys
+import csv
 from datetime import datetime, timedelta
 from dateutil import tz
 
@@ -24,24 +25,57 @@ channel_ids =[1367948, 1367997, 1336916, 1367985, 1369647,
 
 from_zone = tz.tzutc()
 
+# Tema y fuente
+sg.theme('LightGreen2')
+font = ('Times New Roman', 14)
+
 def Gui():
     # Se crea la interfaz principal del programa.
-    layout = [[sg.Text('Monitoreo de los sensores PurpleAir en vivo.')],
+    layout = [[sg.Text('Monitoreo de los sensores PurpleAir en vivo.\n', justification='center', font=('Times New Roman', 20), expand_x=True)],
             [sg.Text('Este programa permite realizar un monitoreo en vivo de los sensores en el campo,\ncomprobando que estos esten transmitiendo datos continuamente al servidor', expand_x=True)],
-            [sg.Text('Indica cada cuanto tiempo se comprobara que los sensores envian datos: ',size = (55,1)), sg.Input(key='Period',expand_x=True)],
-            [sg.Text('Favor de escribir el correo que recibira las advertencias: ',size = (55,1)), sg.Input(key='Correo')],
+            [sg.Text('Indica en cuantos minutos se comprobara que los sensores envian datos: ',size = (55,1)), sg.Input(key='Period',expand_x=True)],
+            [sg.Text('Favor de escribir el correo que recibira las advertencias: '), sg.Input(key='Correo')],
+            [sg.Text('\nNota: El programa tiene registrado las llaves y ids de 30 sensores,\nsi desea trabajar con más sensores, favor de seleccionar el recuadro:')],
+            [sg.Checkbox('Cargar llaves y Ids', default=False, key='Cargar')],
             [sg.Button('Continue'), sg.Button('Exit')]]
 
-    window = sg.Window('Monitoreo de los sensores', layout, size=(720,480))
+    window = sg.Window('Monitoreo de los sensores', layout, font=font, size=(720,480), grab_anywhere=True)
     event, value = window.read()
 
-    if event == 'Exit':
+    if event in ('Exit', sg.WIN_CLOSED):
         window.close()
         sys.exit()
 
     period = float(value['Period'])
     email = value['Correo']
-    
+
+    # Se ejecuta si el usuario desea comprobar sensores nuevos que no estan añadidos en este código.
+    if value['Cargar'] == True:
+        layout = [[sg.Text('Carga de archivo csv.\n', justification='center', font=('Times New Roman', 20), expand_x=True)],
+                [sg.Text('Selecciona el archivo con los Ids y llaves de los sensores a trabajar')],
+                [sg.Input(), sg.FileBrowse()],
+                [sg.Button('Continue'), sg.Button('Exit')]]
+        
+        window.close()
+        window = sg.Window('Monitoreo de los sensores', layout, font=font, size=(720,480), grab_anywhere=True)
+        event, value = window.read()
+
+        if event in ('Exit', sg.WIN_CLOSED):
+            window.close()
+            sys.exit()
+
+        global keys, channel_ids
+        keys = []
+        channel_ids = []
+
+        with open(value['Browse'], mode='rt', encoding="utf8") as csv_file:
+            csv_reader = csv.DictReader(csv_file, delimiter=',')
+            for row in csv_reader:
+                channel_ids.append(row['Ids'])
+                keys.append(row['Keys'])
+
+    # Se crea una matriz para desplegar los sensores que el usuario seleccionara.
+
     chain = list(range(1,len(keys)+1))
     lay = []
     layout = []
@@ -60,17 +94,21 @@ def Gui():
         layout.append(lay)
         lay = []
 
-    lay = [[sg.Text('Favor de indicar los sensores a monitorizar', justification='center', expand_x=True)],
+    frame = [[sg.Frame('Disposición de los sensores', layout, element_justification='center', expand_x=True)]]
+
+    lay = [[sg.Text('Favor de indicar los sensores a monitorizar', justification='center', font=('Times New Roman', 20), expand_x=True)],
             [sg.Text('Escribe el número de identificación de los sensores en los recuadros (Ejemplo: 1, 6, 23)')],
-            [sg.Frame('Disposición de los sensores', layout, element_justification='center', expand_x=True)],
+            [sg.Column(frame, scrollable=True, expand_y=True, justification='center')],
             [sg.Button('Continue',key='Next'),sg.Button('Return',key='sensor_info'),sg.Button('Exit')]]
 
+
     window.close()
-    window = sg.Window('Monitoreo de los sensores', lay, size=(720,480))
+    window = sg.Window('Monitoreo de los sensores', lay, font=font, size=(720,480), grab_anywhere=True)
     event, value = window.read()
 
-    if event == 'Exit':
-        pass
+    if event in ('Exit', sg.WIN_CLOSED):
+        window.close()
+        sys.exit()
 
     lay = []
 
@@ -80,13 +118,15 @@ def Gui():
     lay = [[sg.Text('El programa actualmente esta funcionando.')],
             [sg.Text('Si algun sensor deja de enviar datos, se notificara con un e-mail.')],
             [sg.Text('Para finalizar el programa, solo cierra esta ventana.')]]
-    window = sg.Window('Monitoreo de los sensores', lay)
+    window = sg.Window('Monitoreo de los sensores', lay, font = font, grab_anywhere=True)
 
     value =  list(set(list(value.values())))
-    value.remove('')
+    if '' in value:
+        value.remove('')
     sensors = []
     for ii in value:
         sensors.append(int(ii))
+    sensors.sort()
 
     return period, email, sensors, window
 
