@@ -80,3 +80,19 @@ def Send_email(user,sensores):
     # setup the parameters of the message
     #password = "GIECCUC8"
     #msg['From'] = "UCMX154872@gmail.com"
+
+def email_test(user):
+    EMAIL_ADRESS = "GIECC.UCMEXUS@gmail.com"
+    EMAIL_PASSWORD = "kvrdhmkhwfrmkaap"
+
+    msg = EmailMessage()
+    msg['Subject'] = "Sensores desconectados"
+    msg['From'] = EMAIL_ADRESS
+    msg['To'] = user
+
+    msg.set_content(f'Mensaje de prueba, si recibió este correo entonces se introdujo bien su correo al programa de monitorizado.')
+
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+        smtp.login(EMAIL_ADRESS, EMAIL_PASSWORD)
+        smtp.send_message(msg)
+        smtp.quit()
