@@ -1,5 +1,6 @@
 from datetime import datetime
 import smtplib
+import ssl
 from email.message import EmailMessage
 
 def Send_email(user,sensores):
@@ -72,7 +73,9 @@ def Send_email(user,sensores):
   </html>
   """,subtype='html')
 
-  with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+  SSL_context = ssl.create_default_context()
+
+  with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=SSL_context) as smtp:
     smtp.login(EMAIL_ADRESS, EMAIL_PASSWORD)
     smtp.send_message(msg)
     smtp.quit()
@@ -91,8 +94,10 @@ def email_test(user):
     msg['To'] = user
 
     msg.set_content(f'Mensaje de prueba, si recibió este correo entonces se introdujo bien su correo al programa de monitorizado.')
+    
+    SSL_context = ssl.create_default_context()
 
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=SSL_context) as smtp:
         smtp.login(EMAIL_ADRESS, EMAIL_PASSWORD)
         smtp.send_message(msg)
         smtp.quit()
