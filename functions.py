@@ -6,8 +6,14 @@ import csv
 from datetime import datetime, timedelta
 from dateutil import tz
 
-#IDs y Llaves del canal prinicpal del sensor A los dispositivos  PurpleAir
+"""
+Este archivo fue creado para contener las funciones que utilizara el código main.
 
+Creado por Adrian Morales.
+Fecha de finalización: 20/06/2022
+"""
+
+#IDs y Llaves del canal prinicpal del sensor A los dispositivos  PurpleAir
 #Van en orden del 1 al 30.
 
 keys = ['TMTVNTYUXGGT7MK3', 'T5VPQSVT9BAE5ZI1',"F2K1DV64M1Z75VU4", "O94LWPUDGE645M0W","3DHCZRPJ1M6YIFV7",
@@ -35,6 +41,12 @@ sg.theme('LightGreen2')
 font = ('Times New Roman', 14)
 
 def Gui_start():
+    """
+        @name: Gui_start
+        @brief: Crea la interfaz de arranque, solicitando datos al usuario.
+        @params: 
+        @return: period, email, key, key2, window
+    """
     # Se crea la interfaz principal del programa.
     layout = [[sg.Text('Monitoreo de los sensores PurpleAir en vivo.\n', justification='center', font=('Times New Roman', 20), expand_x=True)],
             [sg.Text('Este programa permite realizar un monitoreo en vivo de los sensores en el campo,\ncomprobando que estos esten transmitiendo datos continuamente al servidor.', expand_x=True)],
@@ -86,7 +98,10 @@ def Gui_start():
 
 def Cargar(window):
     """
-    Se ejecuta si el usuario desea comprobar sensores nuevos que no estan añadidos en este código.
+        @name: Cargar
+        @brief: Se ejecuta si el usuario desea comprobar sensores nuevos que no estan añadidos en este código.
+        @params: window
+        @return: Actualiza la variable global de IDs y Keys.
     """
 
     layout = [[sg.Text('Carga de archivo csv\n', justification='center', font=('Times New Roman', 20), expand_x=True)],
@@ -129,6 +144,12 @@ def Cargar(window):
         return True, window
 
 def Posicion(window):
+    """
+        @name: Posicion
+        @brief: Función que genera una interfaz con los numeros de sensores a monitorear.
+        @params: window
+        @return: Sensores, window
+    """
     # Se crea una matriz para desplegar los sensores que el usuario seleccionara.
 
     chain = list(IDS_KEY.keys())
@@ -224,6 +245,12 @@ def Posicion(window):
         return True, window
     
 def Aviso_programa(window,email):
+    """
+        @name: Aviso_programa
+        @brief: Genera un mensaje del funcionamiento del programa.
+        @params: window, email
+        @return: window.
+    """
     window.close()
     time.sleep(2)
 
@@ -238,8 +265,8 @@ def Data_extraction(value):
     """
         @name: Data_extraction
         @brief: Función que extrae datos de los sensores purple air
-        @params: None
-        @return: Datos de todos los sensores.
+        @params: value: Número de sensores a extraer.
+        @return: Datos de los sensores dados.
     """
     dates = []
 
@@ -288,3 +315,15 @@ def Read_sensor(channel_id, read_key):
 
     feeds = data['feeds']
     return feeds
+
+def No_outlook():
+    layout = [[sg.Text('No se detecta alguna cuenta valida.', justification='center', font=('Times New Roman', 20), expand_x=True)],
+            [sg.Text('Favor de introducir una cuenta microsoft a la computadora para el envio de correo.')],
+            [sg.Button('Exit')]]
+
+    window = sg.Window('Monitoreo de los sensores', layout, font=font, size=(720,480), grab_anywhere=True, element_justification='c')
+    event, value = window.read()
+
+    if event in ('Exit', sg.WIN_CLOSED):
+        window.close()
+        sys.exit()

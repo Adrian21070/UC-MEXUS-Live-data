@@ -1,8 +1,21 @@
-import email_sending as Mail
+import email_sending_outlook as Mail
 import PySimpleGUI as sg
 import multiprocessing
 from datetime import datetime
-from live_data import *
+from functions import *
+
+"""
+Archivo principal de este programa.
+El programa fue diseñado para realizar un seguimiento de sensores PurpleAir a partir de datos
+dados por el usuario en una interfaz gráfica. El código puede enviar correos como advertencia si
+los sensores dejan de enviar información.
+
+Actualmente cuenta con las Ids y llaves de 30 sensores, sin embargo tiene la opción de pedir
+un archivo csv que contenga más llaves y trabajar con el.
+
+Creado por Adrian Morales.
+Fecha de finalización: 20/06/2022
+"""
 
 def verificacion(period, user, value, stop_bool):
     # Obtengo la hora antes de entrar a la extracción de datos
@@ -111,14 +124,10 @@ def is_closed(window, stop_bool2, user):
             else:
                 # Se crea la ventana de "Programa en funcionamiento"
                 window = Aviso_programa(window,user)
-                #lay = [[sg.Text('El programa actualmente esta funcionando.')],
-                #    [sg.Text('Si algun sensor deja de enviar datos, se notificara con un e-mail.')],
-                #    [sg.Text('Para finalizar el programa, solo cierra esta ventana.')]]
-                #window = sg.Window('Monitoreo de los sensores', lay, font = font, grab_anywhere=True)
                 continue
 
 if __name__=='__main__':
-
+    multiprocessing.freeze_support()
     # Se realizaran muestros cada x minutos, se esperaria tener algun dato en este periodo
     # si no se presenta algun dato nuevo, es decir una nueva fecha, se marcara como un retraso
     # de x minutos para ese sensor, esto se ira acumulando y si pasa un tiempo dado en minutos,
@@ -171,8 +180,6 @@ if __name__=='__main__':
     while True:
         p2.join(1)
         p1.join(5)
-        #print(stop_bool)
-        #print(stop_bool2)
         if stop_bool.value > 0:
             if p2.is_alive():
                 p2.terminate()

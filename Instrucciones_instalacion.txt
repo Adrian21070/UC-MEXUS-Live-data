@@ -1,0 +1,20 @@
+Pasos a seguir para instalar los códigos de monitorizado y visualización de datos.
+
+1.- Instalar Python 3.8 en adelante en todos los usuarios de la PC(Recomendado).
+2.- Crear una carpeta nueva.
+3.- Pegar los archivos .py de acuerdo al programa que deseas instalar.
+4.- Abrir Visual Studio Code, ir a File, despues a Open Folder y seleccionar la carpeta donde pegaste los archivos.
+5.- Instalar las extensiones de Python si VSC lo pide.
+6.- Ir a Terminal (Parte superior izquierda) y hacer clic en New Terminal.
+7.- Con la terminal abierta se escribiran los siguientes comandos en orden...
+
+Comandos:
+1) py -m venv venv
+2) venv\Scripts\activate
+3) pip install -r requirements.txt (Cambia el nombre de requirements.txt por el nombre del txt correcto)
+
+requirements.txt debe ser el correcto para cada programa, existe uno para el de monitorizado y otro para visualización de datos.
+
+Monitorizado -> requirements_monitor.txt
+
+Graficas y guardado de datos -> requirements_graficas.txt
